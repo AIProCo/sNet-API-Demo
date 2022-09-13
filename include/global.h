@@ -1,0 +1,35 @@
+/*==============================================================================
+* Copyright 2022 AIPro Inc.
+* Author: Chun-Su Park (cspk@skku.edu)
+=============================================================================*/
+#pragma once
+
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include <opencv2/core.hpp>
+
+typedef unsigned char uchar;
+typedef unsigned int uint;
+
+struct Config {
+    std::string key;                       /// authorization Key
+    uint frameLimit;                       /// number of frames to be processed
+    std::vector<std::string> inputFiles;   /// list of the input files
+    std::vector<std::string> outputFiles;  /// list of the output files
+
+    // sr config
+    bool srEnable;            /// Enable object detection and tracking
+    std::string srModelFile;  /// path to the od config file (ex:aipro_sr_x2.trt)
+    int netWidth;             /// width of model input
+    int netHeight;            /// height of model input
+    int srBatchSize;          /// batch size of the od model
+    double scaleFactor;       /// scale factor from net input to sr output
+    std::string job;          /// specify SR operation("SR_X2", "SR_X1_5")
+
+    int numChannels;                /// number of video channels (unlimited)
+    std::vector<int> frameWidths;   /// widths of the input frames
+    std::vector<int> frameHeights;  /// heights of the input frames
+    std::vector<float> fpss;        /// fpss of the input frames
+};
