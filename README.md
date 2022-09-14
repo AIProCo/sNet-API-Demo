@@ -1,11 +1,11 @@
-# iNet-API-Demo (Demo program for iNet-API)
+# sNet-API-Demo (Demo program for sNet-API)
 
-- This is a repository for demo of iNet-API developped by AIPro Inc.
-- In this demo, the number of inferences is limited to 6000.
+- This is a repository for demo of sNet-API developped by AIPro Inc.
+- In this demo, the number of inferences is limited to 1000.
 - Commercial use must be approved by AIPro Inc.
 - You can refer to one of the technical documents in the repository for more information:
-  + English: AIPro_iNet_solution_guide_v1(English).pdf
-  + Korean: AIPro_iNet_solution_guide_v1(Korean).pdf
+  + English: AIPro_sNet_solution_guide_v1(English).pdf
+  + Korean: AIPro_sNet_solution_guide_v1(Korean).pdf
   
 ------------------
 
@@ -38,9 +38,9 @@
 
 ### **Download and extract files**
 - Download and upzip the followings zip file. Then, copy and paste bin, inputs, and videos directories to the solution directory (the directory including the `.sln` file):
-  + https://drive.google.com/file/d/196-0ZvWD2Rk8cBIF17bxiaMhaSB_8-4I/view?usp=sharing
+  + https://drive.google.com/file/d/12UzUP7BK6VicL3dnaAXt5fd4LNh9-W-5/view?usp=sharing
 
 ### **Run the project**
 
 - Open the following sln:
-  + `iNet-API-Demo.sln` in the solution directory
+  + `sNet-API-Demo.sln` in the solution directory
