@@ -33,7 +33,7 @@
 | ---------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------- |
 | C/C++      | Additional Include Directories | include_opencv; include                                                          |
 | Linker     | Addtional Library Directorires | bin
-| Linker     | Addtional Dependencies         | generator_multi_v2.lib; opencv_world455.lib
+| Linker     | Addtional Dependencies         | generator_sr.lib; opencv_world455.lib
 | Debugging  | Environment                    | PATH=bin;%PATH%
 
 ### **Download and extract files**
