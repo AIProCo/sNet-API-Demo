@@ -39,7 +39,7 @@
 
 ### **Download and extract files**
 - Download and upzip the followings zip file. Then, copy and paste bin, inputs, and videos directories to the solution directory (the directory including the `.sln` file):
-  + https://drive.google.com/file/d/12UzUP7BK6VicL3dnaAXt5fd4LNh9-W-5/view?usp=sharing
+  + https://drive.google.com/file/d/1RVNGcMH7q_dwcqnZNK6a1niKbUfCJp9i/view?usp=sharing
 
 ### **Run the project**
 

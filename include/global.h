@@ -17,16 +17,19 @@ struct Config {
     std::string key;                       /// authorization Key
     uint frameLimit;                       /// number of frames to be processed
     std::vector<std::string> inputFiles;   /// list of the input files
-    std::vector<std::string> outputFiles;  /// list of the output files
+    std::vector<std::string> outputFiles;  /// list of the SR output files
+    std::vector<std::string> filterFiles;  /// list of the filter output files
 
     // sr config
-    bool srEnable;            /// Enable object detection and tracking
-    std::string srModelFile;  /// path to the od config file (ex:aipro_sr_x2.trt)
+    bool srEnable;            /// Enable SR
+    bool filterEnable;        /// Enable filter
+    std::string srModelFile;  /// path to the od config file (ex:aipro_sr_x2_1_2.net)
     int netWidth;             /// width of model input
     int netHeight;            /// height of model input
     int srBatchSize;          /// batch size of the od model
     double scaleFactor;       /// scale factor from net input to sr output
     std::string job;          /// specify SR operation("SR_X2", "SR_X1_5")
+    cv::Size outputSize;      /// size of output frame
 
     int numChannels;                /// number of video channels (unlimited)
     std::vector<int> frameWidths;   /// widths of the input frames

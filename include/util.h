@@ -18,17 +18,23 @@ using namespace cv;
 struct VideoCW {
     VideoCapture *videoCapturer;
     VideoWriter *videoWriter;
+    VideoWriter *videoWriterFilter;
+
     string inPath;
     string outPath;
     int frameWidth;
     int frameHeight;
     float fps;
+    bool filterFlag;
 
     VideoCapture &cap() const {
         return *(videoCapturer);
     }
     VideoWriter &writer() const {
         return *(videoWriter);
+    }
+    void writeFilterOutput(Mat &frame) const {
+        videoWriterFilter->write(frame);
     }
 
     friend VideoCW &operator>>(VideoCW &videoCW, Mat &frame) {
@@ -60,12 +66,14 @@ class VideoDir {
     VideoDir() {
     }
 
-    VideoDir(const vector<string> &inFilepaths, const vector<string> &outFilepaths) {
-        init(inFilepaths, outFilepaths);
+    VideoDir(const vector<string> &inFilepaths, const vector<string> &outFilepaths,
+             const vector<string> &bilinearFilepaths = {}) {
+        init(inFilepaths, outFilepaths, bilinearFilepaths);
     }
 
-    void init(const vector<string> &inFilepaths, const vector<string> &outFilepaths, Size size = Size(0, 0)) {
-        setVideoCWFiles(inFilepaths, outFilepaths, size);
+    void init(const vector<string> &inFilepaths, const vector<string> &outFilepaths,
+              const vector<string> &bilinearFilepaths = {}, Size size = Size(0, 0)) {
+        setVideoCWFiles(inFilepaths, outFilepaths, bilinearFilepaths, size);
         setFrameWidthsHeights(videoCWs);
     }
 
@@ -89,10 +97,15 @@ class VideoDir {
         return fpss;
     }
 
-    void setVideoCWFiles(const vector<string> &inFilepaths, const vector<string> &outFilepaths, Size &size) {
+    void setVideoCWFiles(const vector<string> &inFilepaths, const vector<string> &outFilepaths,
+                         const vector<string> &filterFilepaths, Size &size) {
         for (size_t i = 0; i < inFilepaths.size(); i++) {
             string inFilepath = inFilepaths[i];
             string outFilepath = outFilepaths[i];
+            string filterFilepath = "";
+
+            if (filterFilepaths.size() > i)
+                filterFilepath = filterFilepaths[i];
 
             VideoCW *videoCW;
             VideoCapture *capturer = new VideoCapture(inFilepath);
@@ -113,13 +126,30 @@ class VideoDir {
             videoCW->frameWidth = capturer->get(CAP_PROP_FRAME_WIDTH);
             videoCW->frameHeight = capturer->get(CAP_PROP_FRAME_HEIGHT);
             videoCW->fps = capturer->get(CAP_PROP_FPS);
+            videoCW->filterFlag = false;
 
-            if (size.width != 0 && size.height != 0)
+            if (size.width != 0 && size.height != 0) {
                 videoCW->videoWriter =
                     new VideoWriter(outFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'), videoCW->fps, size);
-            else
+
+                if (filterFilepath != "") {
+                    videoCW->filterFlag = true;
+
+                    videoCW->videoWriterFilter =
+                        new VideoWriter(filterFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'), videoCW->fps, size);
+                }
+            } else {
                 videoCW->videoWriter = new VideoWriter(outFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'),
                                                        videoCW->fps, Size(videoCW->frameWidth, videoCW->frameHeight));
+
+                if (filterFilepath != "") {
+                    videoCW->filterFlag = true;
+
+                    videoCW->videoWriterFilter =
+                        new VideoWriter(filterFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'), videoCW->fps,
+                                        Size(videoCW->frameWidth, videoCW->frameHeight));
+                }
+            }
 
             videoCWs.push_back(videoCW);
         }
@@ -128,9 +158,16 @@ class VideoDir {
     static void freeVideoCWFiles(vector<VideoCW *> &videoCWs) {
         for (int i = 0; i < videoCWs.size(); i++) {
             videoCWs[i]->videoCapturer->release();
-            videoCWs[i]->videoWriter->release();
             delete videoCWs[i]->videoCapturer;
+
+            videoCWs[i]->videoWriter->release();
             delete videoCWs[i]->videoWriter;
+
+            if (videoCWs[i]->filterFlag) {
+                videoCWs[i]->videoWriterFilter->release();
+                delete videoCWs[i]->videoWriterFilter;
+            }
+
             delete videoCWs[i];
         }
     }

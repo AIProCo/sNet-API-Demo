@@ -43,7 +43,7 @@ int main() {
     unsigned int frameLimit = cfg.frameLimit;  // number of frames to be processed
     int srBatchSize = cfg.srBatchSize;         // batch size of super resolution
 
-    vector<Mat> frames, srFrames;
+    vector<Mat> frames, srFrames, bilinearFrames;
     vector<int> vchIDs;
     clock_t start, end;
     vector<float> infs;
@@ -89,6 +89,17 @@ int main() {
 
             cout << "Frame " << frameCnt << ">\tInference Time: " << inf << "ms\n";
 
+            if (cfg.filterEnable) {
+                for (int b = 0; b < srBatchSize; b++) {
+                    int vchID = vchIDs[b];
+
+                    Mat filterFrame;
+
+                    resize(frames[b], filterFrame, cfg.outputSize, 0.0, 0.0, INTER_LINEAR);
+                    (videoDir[vchID]).writeFilterOutput(filterFrame);  // write a filter frame
+                }
+            }
+
             frames.clear();
             srFrames.clear();
             vchIDs.clear();
@@ -109,6 +120,9 @@ int main() {
     for (auto &outFile : cfg.outputFiles)
         cout << "\t" << outFile << endl;
 
+    for (auto &filterFile : cfg.filterFiles)
+        cout << "\t" << filterFile << endl;
+
     cout << "\nTerminate program!\n";
 
     return 0;
@@ -123,18 +137,33 @@ bool parseConfigAPI(Config &cfg, VideoDir &videoDir) {
     // apikey
     cfg.frameLimit = js["global"]["frame_limit"];
     cfg.key = js["global"]["apikey"];
+    cfg.filterEnable = js["global"]["filter_enable"];
 
     cfg.inputFiles = js["global"]["input_files"].get<vector<string>>();
     cfg.outputFiles = js["global"]["output_files"].get<vector<string>>();
+    cfg.filterFiles.clear();
 
     if (cfg.inputFiles.size() != cfg.outputFiles.size()) {
         cout << "input_files and output_files should be the same size!!";
         return false;
     }
 
+    if (cfg.filterEnable) {
+        for (auto &inputFile : cfg.inputFiles) {
+            string filterFile = inputFile;
+            const size_t period_idx = filterFile.rfind('.');
+            if (string::npos != period_idx) {
+                filterFile.erase(period_idx);
+            }
+
+            filterFile += "_filter.mp4";
+            cfg.filterFiles.push_back(filterFile);
+        }
+    }
+
     // sr config
     cfg.srEnable = true;
-    cfg.srBatchSize = 4;  // from 1 to 4
+    cfg.srBatchSize = 4;  // from 1 to 4    
 
     cfg.job = js["sr"]["job"];
     transform(cfg.job.begin(), cfg.job.end(), cfg.job.begin(), ::toupper);
@@ -146,18 +175,19 @@ bool parseConfigAPI(Config &cfg, VideoDir &videoDir) {
         cfg.netHeight = 540;  // fixed
 
     } else if (cfg.job == "SR_X1_5") {
-        cfg.scaleFactor = 1.5; // fixed
+        cfg.scaleFactor = 1.5;  // fixed
         cfg.srModelFile = SR_X1_5_FILEPATH;
-        cfg.netWidth = 1280;   // fixed
-        cfg.netHeight = 720;   // fixed
+        cfg.netWidth = 1280;  // fixed
+        cfg.netHeight = 720;  // fixed
     } else {
         cout << "SR job setting Error" << endl;
         return false;
     }
 
+    cfg.outputSize = Size(cfg.scaleFactor * cfg.netWidth, cfg.scaleFactor * cfg.netHeight);
+
     // read the list of filepaths
-    videoDir.init(cfg.inputFiles, cfg.outputFiles,
-                  Size(cfg.scaleFactor * cfg.netWidth, cfg.scaleFactor * cfg.netHeight));
+    videoDir.init(cfg.inputFiles, cfg.outputFiles, cfg.filterFiles, cfg.outputSize);
 
     cfg.numChannels = videoDir.size();
     cfg.frameWidths = videoDir.getFrameWidths();
