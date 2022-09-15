@@ -1,7 +1,7 @@
 # sNet-API-Demo (Demo program for sNet-API)
 
 - This is a repository for demo of sNet-API developped by AIPro Inc.
-  + sNet: AIPro Deep Learning Solution supporting Super Resolution (SR)
+  + sNet: AIPro Deep Learning Solution supporting Real-Time Super Resolution (SR)
 - In this demo, the number of inferences is limited to 1000.
 - Commercial use must be approved by AIPro Inc.
 - You can refer to one of the technical documents in the repository for more information:
