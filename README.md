@@ -2,7 +2,7 @@
 
 - This is a repository for demo of sNet-API developped by AIPro Inc.
   + sNet: AIPro Deep Learning Solution supporting Real-Time Super Resolution (SR)
-- In this demo, the number of inferences is limited to 1000.
+- In this demo, the number of inferences is limited to 500.
 - Commercial use must be approved by AIPro Inc.
 - You can refer to one of the technical documents in the repository for more information:
   + English: AIPro_sNet_solution_guide_v1(English).pdf
@@ -40,9 +40,9 @@
 ### **Download and extract files**
 - Download and upzip one of the following zip files. Then, copy and paste bin, inputs, and videos directories to the solution directory (the directory including the `.sln` file):
   + Cuda compute capability 7.5(including RTX 20xx): 
-    - https://drive.google.com/file/d/1wE5nqM5p_wdZjdtRSAryO7BcWYfes1xF/view?usp=sharing
+    - https://drive.google.com/file/d/1XA9RfkwFGSCMfK-FJ8xZF4OyJRETNEIR/view?usp=sharing
   + Cuda compute capability 8.6(including RTX 30xx): 
-    - https://drive.google.com/file/d/1WlwACuVonG-T7aoYOLDb-T7UaC7C7w9O/view?usp=sharing
+    - https://drive.google.com/file/d/1rjpOOuBkqEnR__JEz93GiQ23C-LFL4kd/view?usp=sharing
 
 ### **Run the project**
 
