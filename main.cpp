@@ -156,7 +156,8 @@ bool parseConfigAPI(Config &cfg, VideoDir &videoDir) {
                 filterFile.erase(period_idx);
             }
 
-            filterFile += "_filter.mp4";
+            string filterFileAppend = js["global"]["filter_file_append"];
+            filterFile = filterFile + filterFileAppend + ".mp4";
             cfg.filterFiles.push_back(filterFile);
         }
     }
