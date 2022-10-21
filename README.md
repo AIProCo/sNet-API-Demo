@@ -4,9 +4,6 @@
   + sNet: AIPro Deep Learning Solution supporting Real-Time Super Resolution (SR)
 - In this demo, the number of inferences is limited to 500.
 - Commercial use must be approved by AIPro Inc.
-- You can refer to one of the technical documents in the repository for more information:
-  + English: AIPro_sNet_solution_guide_v1(English).pdf
-  + Korean: AIPro_sNet_solution_guide_v1(Korean).pdf
   
 ------------------
 
@@ -18,7 +15,7 @@
 
 ### **Installation and Solution Guide**
 
-- You can refer to one of the technical documents in the repository for installation and guide:
+- You can refer to one of the following technical documents in the repository for installation and guide:
   + English: AIPro_sNet_solution_guide_v1(English).pdf
   + Korean: AIPro_sNet_solution_guide_v1(Korean).pdf
 
