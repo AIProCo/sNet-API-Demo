@@ -57,6 +57,7 @@ class VideoDir {
     vector<int> frameWidths;
     vector<int> frameHeights;
     vector<float> fpss;
+    bool filterEnable;
 
    public:
     VideoCW &operator[](int idx) const {
@@ -72,7 +73,9 @@ class VideoDir {
     }
 
     void init(const vector<string> &inFilepaths, const vector<string> &outFilepaths,
-              const vector<string> &bilinearFilepaths = {}, Size size = Size(0, 0)) {
+              const vector<string> &bilinearFilepaths = {}, Size size = Size(0, 0), bool _filterEnable = false) {
+        filterEnable = _filterEnable;
+
         setVideoCWFiles(inFilepaths, outFilepaths, bilinearFilepaths, size);
         setFrameWidthsHeights(videoCWs);
     }
@@ -132,7 +135,7 @@ class VideoDir {
                 videoCW->videoWriter =
                     new VideoWriter(outFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'), videoCW->fps, size);
 
-                if (filterFilepath != "") {
+                if (filterEnable && filterFilepath != "") {
                     videoCW->filterFlag = true;
 
                     videoCW->videoWriterFilter =
@@ -142,7 +145,7 @@ class VideoDir {
                 videoCW->videoWriter = new VideoWriter(outFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'),
                                                        videoCW->fps, Size(videoCW->frameWidth, videoCW->frameHeight));
 
-                if (filterFilepath != "") {
+                if (filterEnable && filterFilepath != "") {
                     videoCW->filterFlag = true;
 
                     videoCW->videoWriterFilter =
@@ -155,7 +158,7 @@ class VideoDir {
         }
     }
 
-    static void freeVideoCWFiles(vector<VideoCW *> &videoCWs) {
+    void freeVideoCWFiles(vector<VideoCW *> &videoCWs) {
         for (int i = 0; i < videoCWs.size(); i++) {
             videoCWs[i]->videoCapturer->release();
             delete videoCWs[i]->videoCapturer;
@@ -163,7 +166,7 @@ class VideoDir {
             videoCWs[i]->videoWriter->release();
             delete videoCWs[i]->videoWriter;
 
-            if (videoCWs[i]->filterFlag) {
+            if (filterEnable && videoCWs[i]->filterFlag) {
                 videoCWs[i]->videoWriterFilter->release();
                 delete videoCWs[i]->videoWriterFilter;
             }

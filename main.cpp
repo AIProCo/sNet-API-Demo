@@ -188,7 +188,7 @@ bool parseConfigAPI(Config &cfg, VideoDir &videoDir) {
     cfg.outputSize = Size(cfg.scaleFactor * cfg.netWidth, cfg.scaleFactor * cfg.netHeight);
 
     // read the list of filepaths
-    videoDir.init(cfg.inputFiles, cfg.outputFiles, cfg.filterFiles, cfg.outputSize);
+    videoDir.init(cfg.inputFiles, cfg.outputFiles, cfg.filterFiles, cfg.outputSize, cfg.filterEnable);
 
     cfg.numChannels = videoDir.size();
     cfg.frameWidths = videoDir.getFrameWidths();
