@@ -1,5 +1,5 @@
 /*==============================================================================
-* Copyright 2022 AIPro Inc.
+* Copyright 2023 AIPro Inc.
 * Author: Chun-Su Park (cspk@skku.edu)
 =============================================================================*/
 #include <fstream>
@@ -15,8 +15,8 @@
 #include "util.h"
 
 #define CFG_FILEPATH "inputs/config.json"
-#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_2.net"
-#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_2.net"
+#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_3.net"
+#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_3.net"
 
 using namespace std;
 using namespace cv;
@@ -164,24 +164,17 @@ bool parseConfigAPI(Config &cfg, VideoDir &videoDir) {
 
     // sr config
     cfg.srEnable = true;
-    cfg.srBatchSize = 4;  // from 1 to 4    
+    cfg.srBatchSize = 1;  // should be 1
+    cfg.scaleFactor = js["sr"]["scale_factor"];
+    cfg.netHeight = js["sr"]["net_height"];
+    cfg.netWidth = js["sr"]["net_width"];
 
-    cfg.job = js["sr"]["job"];
-    transform(cfg.job.begin(), cfg.job.end(), cfg.job.begin(), ::toupper);
-
-    if (cfg.job == "SR_X2") {
-        cfg.scaleFactor = 2;  // fixed
+    if (cfg.scaleFactor == 2.0) {
         cfg.srModelFile = SR_X2_FILEPATH;
-        cfg.netWidth = 960;   // fixed
-        cfg.netHeight = 540;  // fixed
-
-    } else if (cfg.job == "SR_X1_5") {
-        cfg.scaleFactor = 1.5;  // fixed
+    } else if (cfg.scaleFactor == 1.5) {
         cfg.srModelFile = SR_X1_5_FILEPATH;
-        cfg.netWidth = 1280;  // fixed
-        cfg.netHeight = 720;  // fixed
     } else {
-        cout << "SR job setting Error" << endl;
+        cout << "Scaling factor error!" << endl;
         return false;
     }
 

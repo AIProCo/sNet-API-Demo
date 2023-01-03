@@ -1,5 +1,5 @@
 /*==============================================================================
-* Copyright 2022 AIPro Inc.
+* Copyright 2023 AIPro Inc.
 * Author: Chun-Su Park (cspk@skku.edu)
 =============================================================================*/
 #pragma once
@@ -28,7 +28,6 @@ struct Config {
     int netHeight;            /// height of model input
     int srBatchSize;          /// batch size of the od model
     double scaleFactor;       /// scale factor from net input to sr output
-    std::string job;          /// specify SR operation("SR_X2", "SR_X1_5")
     cv::Size outputSize;      /// size of output frame
 
     int numChannels;                /// number of video channels (unlimited)
