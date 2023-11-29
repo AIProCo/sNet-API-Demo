@@ -14,21 +14,17 @@ typedef unsigned char uchar;
 typedef unsigned int uint;
 
 struct Config {
-    std::string key;                       /// authorization Key
     uint frameLimit;                       /// number of frames to be processed
     std::vector<std::string> inputFiles;   /// list of the input files
     std::vector<std::string> outputFiles;  /// list of the SR output files
     std::vector<std::string> filterFiles;  /// list of the filter output files
 
+    std::string srModelFileX1_5;  /// x1.5 SR model
+    std::string srModelFileX2;    /// x2 SR model
+
     // sr config
-    bool srEnable;            /// Enable SR
-    bool filterEnable;        /// Enable filter
-    std::string srModelFile;  /// path to the od config file (ex:aipro_sr_x2_1_2.net)
-    int netWidth;             /// width of model input
-    int netHeight;            /// height of model input
-    int srBatchSize;          /// batch size of the od model
-    double scaleFactor;       /// scale factor from net input to sr output
-    cv::Size outputSize;      /// size of output frame
+    bool filterEnable;                 /// Enable filter
+    std::vector<double> scaleFactors;  /// scale factor from net input to sr output
 
     int numChannels;                /// number of video channels (unlimited)
     std::vector<int> frameWidths;   /// widths of the input frames

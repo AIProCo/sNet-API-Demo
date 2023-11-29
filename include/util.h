@@ -73,10 +73,11 @@ class VideoDir {
     }
 
     void init(const vector<string> &inFilepaths, const vector<string> &outFilepaths,
-              const vector<string> &bilinearFilepaths = {}, Size size = Size(0, 0), bool _filterEnable = false) {
+              const vector<string> &bilinearFilepaths = {}, const vector<double> &scaleFactors = {},
+              bool _filterEnable = false) {
         filterEnable = _filterEnable;
 
-        setVideoCWFiles(inFilepaths, outFilepaths, bilinearFilepaths, size);
+        setVideoCWFiles(inFilepaths, outFilepaths, bilinearFilepaths, scaleFactors);
         setFrameWidthsHeights(videoCWs);
     }
 
@@ -101,11 +102,12 @@ class VideoDir {
     }
 
     void setVideoCWFiles(const vector<string> &inFilepaths, const vector<string> &outFilepaths,
-                         const vector<string> &filterFilepaths, Size &size) {
+                         const vector<string> &filterFilepaths, const vector<double> &scaleFactors) {
         for (size_t i = 0; i < inFilepaths.size(); i++) {
             string inFilepath = inFilepaths[i];
             string outFilepath = outFilepaths[i];
             string filterFilepath = "";
+            double scaleFactor = scaleFactors[i];
 
             if (filterFilepaths.size() > i)
                 filterFilepath = filterFilepaths[i];
@@ -130,6 +132,8 @@ class VideoDir {
             videoCW->frameHeight = capturer->get(CAP_PROP_FRAME_HEIGHT);
             videoCW->fps = capturer->get(CAP_PROP_FPS);
             videoCW->filterFlag = false;
+
+            Size size(scaleFactor * videoCW->frameWidth, scaleFactor * videoCW->frameHeight);
 
             if (size.width != 0 && size.height != 0) {
                 videoCW->videoWriter =

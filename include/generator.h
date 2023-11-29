@@ -22,14 +22,14 @@
  */
 GENERATOR_API bool initModel(Config &cfg);
 
-/** @brief Run the SR model for a frame batch
+/** @brief Run the SR model for a frame
  *
- * @param frames batch of frames
- * @param srFrames batch of output SR frames
- * @param vchIDs vchIDs of batched frames
+ * @param frame input frame
+ * @param srFrame output SR frame
+ * @param scaleFactor scale factor from frame to srFrame
  * @return flag for the running result(true: success, false: fail)
  */
-GENERATOR_API bool runModel(std::vector<cv::Mat> &frames, std::vector<cv::Mat> &srFrames, std::vector<int> &vchIDs);
+GENERATOR_API bool runModel(cv::Mat &frame, cv::Mat &srFrame, double scaleFactor);
 
 /** @brief Destroy all models
  *

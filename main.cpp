@@ -15,8 +15,8 @@
 #include "util.h"
 
 #define CFG_FILEPATH "inputs/config.json"
-#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_3.net"
-#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_3.net"
+#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_4.net"
+#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_4.net"
 
 using namespace std;
 using namespace cv;
@@ -41,19 +41,16 @@ int main() {
     bool endOfFrames = false;
     unsigned int frameCnt = 0;                 // should be unsigned int
     unsigned int frameLimit = cfg.frameLimit;  // number of frames to be processed
-    int srBatchSize = cfg.srBatchSize;         // batch size of super resolution
 
-    vector<Mat> frames, srFrames, bilinearFrames;
-    vector<int> vchIDs;
     clock_t start, end;
     vector<float> infs;
 
     while (1) {
         frameCnt++;
 
-        for (int i = 0; i < cfg.numChannels; i++) {
-            Mat frame;
-            (videoDir[i]) >> frame;
+        for (int vchID = 0; vchID < cfg.numChannels; vchID++) {
+            Mat frame, srFrame;
+            (videoDir[vchID]) >> frame;
 
             // if the frame is empty, break immediately
             if (frame.empty()) {
@@ -62,27 +59,19 @@ int main() {
                 break;
             }
 
-            frames.push_back(frame);
-            vchIDs.push_back(i);
-
-            // accumulate frames as many as batch
-            if (frames.size() < srBatchSize)
-                continue;
+            double scaleFactor = cfg.scaleFactors[vchID];
 
             start = clock();
 
             // reconstruct srFrames using frames
-            if (!runModel(frames, srFrames, vchIDs))
+            if (!runModel(frame, srFrame, scaleFactor))
                 break;
 
             end = clock();
 
-            for (int b = 0; b < srBatchSize; b++) {
-                int vchID = vchIDs[b];
-                (videoDir[vchID]) << srFrames[b];  // write a frame
-            }
+            (videoDir[vchID]) << srFrame;  // write a frame
 
-            float inf = (end - start) / srBatchSize;
+            float inf = end - start;
 
             if (frameCnt > 10 && frameCnt < 500)  // skip the start frames and limit the number of elements
                 infs.push_back(inf);
@@ -90,26 +79,17 @@ int main() {
             cout << "Frame " << frameCnt << ">\tInference Time: " << inf << "ms\n";
 
             if (cfg.filterEnable) {
-                for (int b = 0; b < srBatchSize; b++) {
-                    int vchID = vchIDs[b];
-
-                    Mat filterFrame;
-
-                    resize(frames[b], filterFrame, cfg.outputSize, 0.0, 0.0, INTER_LINEAR);
-                    (videoDir[vchID]).writeFilterOutput(filterFrame);  // write a filter frame
-                }
+                Mat filterFrame;
+                resize(frame, filterFrame, Size(0, 0), scaleFactor, scaleFactor, INTER_LINEAR);
+                (videoDir[vchID]).writeFilterOutput(filterFrame);  // write a filter frame
             }
-
-            frames.clear();
-            srFrames.clear();
-            vchIDs.clear();
         }
 
-        if (frameCnt >= frameLimit || endOfFrames)
+        if ((frameLimit != -1 && frameCnt >= frameLimit) || endOfFrames)
             break;
     }
 
-    destroyModel();  // destroy sr model
+    destroyModel();  // destroy sr models
 
     if (infs.size() > 1) {
         float avgInf = accumulate(infs.begin(), infs.end(), 0) / infs.size();
@@ -136,7 +116,6 @@ bool parseConfigAPI(Config &cfg, VideoDir &videoDir) {
 
     // apikey
     cfg.frameLimit = js["global"]["frame_limit"];
-    cfg.key = js["global"]["apikey"];
     cfg.filterEnable = js["global"]["filter_enable"];
 
     cfg.inputFiles = js["global"]["input_files"].get<vector<string>>();
@@ -162,26 +141,14 @@ bool parseConfigAPI(Config &cfg, VideoDir &videoDir) {
         }
     }
 
-    // sr config
-    cfg.srEnable = true;
-    cfg.srBatchSize = 1;  // should be 1
-    cfg.scaleFactor = js["sr"]["scale_factor"];
-    cfg.netHeight = js["sr"]["net_height"];
-    cfg.netWidth = js["sr"]["net_width"];
+    cfg.srModelFileX1_5 = SR_X1_5_FILEPATH;
+    cfg.srModelFileX2 = SR_X2_FILEPATH;
 
-    if (cfg.scaleFactor == 2.0) {
-        cfg.srModelFile = SR_X2_FILEPATH;
-    } else if (cfg.scaleFactor == 1.5) {
-        cfg.srModelFile = SR_X1_5_FILEPATH;
-    } else {
-        cout << "Scaling factor error!" << endl;
-        return false;
-    }
-
-    cfg.outputSize = Size(cfg.scaleFactor * cfg.netWidth, cfg.scaleFactor * cfg.netHeight);
+    // sr scaling factors
+    cfg.scaleFactors = js["sr"]["scale_factors"].get<vector<double>>();
 
     // read the list of filepaths
-    videoDir.init(cfg.inputFiles, cfg.outputFiles, cfg.filterFiles, cfg.outputSize, cfg.filterEnable);
+    videoDir.init(cfg.inputFiles, cfg.outputFiles, cfg.filterFiles, cfg.scaleFactors, cfg.filterEnable);
 
     cfg.numChannels = videoDir.size();
     cfg.frameWidths = videoDir.getFrameWidths();
