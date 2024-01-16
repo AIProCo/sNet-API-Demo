@@ -1,5 +1,5 @@
 /*==============================================================================
-* Copyright 2023 AIPro Inc.
+* Copyright 2024 AIPro Inc.
 * Author: Chun-Su Park (cspk@skku.edu)
 =============================================================================*/
 #ifndef UTIL_H
@@ -22,6 +22,7 @@ struct VideoCW {
 
     string inPath;
     string outPath;
+    int totalFrames;
     int frameWidth;
     int frameHeight;
     float fps;
@@ -128,6 +129,7 @@ class VideoDir {
             }
 
             videoCW->videoCapturer = capturer;
+            videoCW->totalFrames = capturer->get(CAP_PROP_FRAME_COUNT);
             videoCW->frameWidth = capturer->get(CAP_PROP_FRAME_WIDTH);
             videoCW->frameHeight = capturer->get(CAP_PROP_FRAME_HEIGHT);
             videoCW->fps = capturer->get(CAP_PROP_FPS);
