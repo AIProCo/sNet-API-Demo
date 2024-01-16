@@ -1,5 +1,5 @@
 /*==============================================================================
-* Copyright 2023 AIPro Inc.
+* Copyright 2024 AIPro Inc.
 * Author: Chun-Su Park (cspk@skku.edu)
 =============================================================================*/
 #include <fstream>
@@ -15,25 +15,33 @@
 #include "util.h"
 
 #define CFG_FILEPATH "inputs/config.json"
-#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_4.net"
-#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_4.net"
+#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_5.net"
+#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_5.net"
 
 using namespace std;
 using namespace cv;
 using json = nlohmann::json;
 
-bool parseConfigAPI(Config &cfg, VideoDir &videoDir);
+bool parseConfigAPI(Config &cfg, VideoDir &videoDir, int argc, char *argv[]);
 
-int main() {
+int main(int argc, char *argv[]) {
     Config cfg;
     VideoDir videoDir;
 
-    if (!parseConfigAPI(cfg, videoDir)) {
+    // cout << argv[0] << ", " << argv[1] << ", " << argv[2] << endl;
+
+    if (argc != 1 && argc != 3) {
+        cout << "Command Error. Enter an input file and scale factor\n";
+        cout << "Example) snet.exe inputfile.mp4 2.0\n";
+        return -1;
+    }
+
+    if (!parseConfigAPI(cfg, videoDir, argc, argv)) {
         cout << "Parsing Error!\n";
         return -1;
     }
 
-    if (!initModel(cfg)) {
+    if (!initModel(cfg.srModelFileX2, cfg.srModelFileX1_5)) {
         cout << "Initialization of the solution failed!\n";
         return -1;
     }
@@ -76,7 +84,7 @@ int main() {
             if (frameCnt > 10 && frameCnt < 500)  // skip the start frames and limit the number of elements
                 infs.push_back(inf);
 
-            cout << "Frame " << frameCnt << ">\tInference Time: " << inf << "ms\n";
+            cout << "Frame " << frameCnt << "/" << (videoDir[vchID]).totalFrames << ">\tInference Time: " << inf << "ms\n";
 
             if (cfg.filterEnable) {
                 Mat filterFrame;
@@ -108,19 +116,44 @@ int main() {
     return 0;
 }
 
-bool parseConfigAPI(Config &cfg, VideoDir &videoDir) {
+bool parseConfigAPI(Config &cfg, VideoDir &videoDir, int argc, char *argv[]) {
     string jsonCfgFile = CFG_FILEPATH;
     ifstream cfgFile(jsonCfgFile);
     json js;
     cfgFile >> js;
 
-    // apikey
-    cfg.frameLimit = js["global"]["frame_limit"];
-    cfg.filterEnable = js["global"]["filter_enable"];
+    if (argc != 3) {
+        // apikey
+        cfg.frameLimit = js["global"]["frame_limit"];
+        cfg.filterEnable = js["global"]["filter_enable"];
 
-    cfg.inputFiles = js["global"]["input_files"].get<vector<string>>();
-    cfg.outputFiles = js["global"]["output_files"].get<vector<string>>();
-    cfg.filterFiles.clear();
+        cfg.inputFiles = js["global"]["input_files"].get<vector<string>>();
+        cfg.outputFiles = js["global"]["output_files"].get<vector<string>>();
+        cfg.filterFiles.clear();
+
+        // sr scaling factors
+        cfg.scaleFactors = js["sr"]["scale_factors"].get<vector<double>>();
+    } else {
+        // apikey
+        cfg.frameLimit = 500000;
+        cfg.filterEnable = false;
+
+        string inputFile = string("C:\\aipro\\videos\\") + string(argv[1]);
+
+        cfg.inputFiles.push_back(inputFile);
+
+        string outputFile = inputFile;
+        const size_t period_idx = outputFile.rfind('.');
+        if (string::npos != period_idx) {
+            outputFile.erase(period_idx);
+        }
+
+        outputFile = outputFile + "-sr" + ".mp4";
+        cfg.outputFiles.push_back(outputFile);
+
+        // sr scaling factors
+        cfg.scaleFactors.push_back((double)atof(argv[2]));
+    }
 
     if (cfg.inputFiles.size() != cfg.outputFiles.size()) {
         cout << "input_files and output_files should be the same size!!";
@@ -143,9 +176,6 @@ bool parseConfigAPI(Config &cfg, VideoDir &videoDir) {
 
     cfg.srModelFileX1_5 = SR_X1_5_FILEPATH;
     cfg.srModelFileX2 = SR_X2_FILEPATH;
-
-    // sr scaling factors
-    cfg.scaleFactors = js["sr"]["scale_factors"].get<vector<double>>();
 
     // read the list of filepaths
     videoDir.init(cfg.inputFiles, cfg.outputFiles, cfg.filterFiles, cfg.scaleFactors, cfg.filterEnable);

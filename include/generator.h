@@ -1,5 +1,5 @@
 /*==============================================================================
-* Copyright 2023 AIPro Inc.
+* Copyright 2024 AIPro Inc.
 * Author: Chun-Su Park (cspk@skku.edu)
 =============================================================================*/
 #pragma once
@@ -17,10 +17,11 @@
 
 /** @brief Initialize model
  *
- * @param cfg configuration struct
+ * @param _srModelFileX2 x2 SR model file path
+ * @param _srModelFileX1_5 x1_5 SR model file path
  * @return initialization result(true: success, false: fail)
  */
-GENERATOR_API bool initModel(Config &cfg);
+GENERATOR_API bool initModel(std::string _srModelFileX2, std::string _srModelFileX1_5);
 
 /** @brief Run the SR model for a frame
  *

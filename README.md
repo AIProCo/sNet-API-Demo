@@ -8,14 +8,13 @@
 
 ### **Dependency**
 
-- Cuda 11.6.2
-- cuDNN 8.4.0 (cudnn-windows-x86_64-8.4.0.27_cuda11.6)
-- zlibwapi.dll (cuDNN 8.4.0 uses this)
+- cuda 12.1.0 (cuda_12.1.0_531.14_windows.exe)
+- cuDNN 8.9.6 (cudnn-windows-x86_64-8.9.6.50_cuda12-archive.zip)
 
 ### **Installation and Solution Guide**
 
 - You can refer to one of the following technical documents in the repository for installation and guide:
-  + Korean: AIPro_sNet_solution_guide_v4(Korean).pdf
+  + Korean: AIPro_sNet_solution_guide_v1_4(Korean).pdf
 
 ### **Download and extract files**
 
