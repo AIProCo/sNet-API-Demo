@@ -26,8 +26,3 @@
 
 - Open the following sln:
   + `sNet-API-Demo.sln` in the solution directory
-
-### **Demo Vidoes**
-
-[![AIPro SR](http://img.youtube.com/vi/Q6KqRZ9lyes&list=PLCTrDn3e-buepRDkZRnQYhAitfrKpb08q/0.jpg)](https://youtu.be/Q6KqRZ9lyes&list=PLCTrDn3e-buepRDkZRnQYhAitfrKpb08q)
-
