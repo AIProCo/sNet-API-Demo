@@ -15,8 +15,8 @@
 #include "util.h"
 
 #define CFG_FILEPATH "inputs/config.json"
-#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_5.net"
-#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_5.net"
+#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_6.net"
+#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_6.net"
 
 using namespace std;
 using namespace cv;
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
             if (frameCnt > 10 && frameCnt < 500)  // skip the start frames and limit the number of elements
                 infs.push_back(inf);
 
-            cout << "Frame " << frameCnt << "/" << (videoDir[vchID]).totalFrames << ">\tInference Time: " << inf << "ms\n";
+            cout << "[" << vchID << "]Frame " << frameCnt << ">\tInference Time: " << inf << "ms\n";
 
             if (cfg.filterEnable) {
                 Mat filterFrame;
