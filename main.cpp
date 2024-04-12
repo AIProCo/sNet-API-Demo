@@ -15,33 +15,34 @@
 #include "util.h"
 
 #define CFG_FILEPATH "inputs/config.json"
-#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_6.net"
-#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_6.net"
+#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_7.net"
+#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_7.net"
+#define NV_FHD_FILEPATH "inputs/aipro_nv_1088_1920_1_7.net"
+#define NV_HD_FILEPATH "inputs/aipro_nv_736_1280_1_7.net"
 
 using namespace std;
 using namespace cv;
 using json = nlohmann::json;
 
-bool parseConfigAPI(Config &cfg, VideoDir &videoDir, int argc, char *argv[]);
+bool parseConfigAPI(Config &cfg, VideoCW &videoCW, int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
     Config cfg;
-    VideoDir videoDir;
+    VideoCW videoCW;
 
     // cout << argv[0] << ", " << argv[1] << ", " << argv[2] << endl;
-
     if (argc != 1 && argc != 3) {
-        cout << "Command Error. Enter an input file and scale factor\n";
-        cout << "Example) snet.exe inputfile.mp4 2.0\n";
+        cout << "Command Error. Enter an input file and scale factor(x10).\n";
+        cout << "Example) snet.exe inputfile.mp4 20\n";
         return -1;
     }
 
-    if (!parseConfigAPI(cfg, videoDir, argc, argv)) {
+    if (!parseConfigAPI(cfg, videoCW, argc, argv)) {
         cout << "Parsing Error!\n";
         return -1;
     }
 
-    if (!initModel(cfg.srModelFileX2, cfg.srModelFileX1_5)) {
+    if (!initModel(cfg.srModelFileX2, cfg.srModelFileX1_5, cfg.nvModelFileFHD, cfg.nvModelFileHD)) {
         cout << "Initialization of the solution failed!\n";
         return -1;
     }
@@ -49,52 +50,52 @@ int main(int argc, char *argv[]) {
     bool endOfFrames = false;
     unsigned int frameCnt = 0;                 // should be unsigned int
     unsigned int frameLimit = cfg.frameLimit;  // number of frames to be processed
+    double scaleFactor = cfg.scaleFactorX10 / 10.0;
 
     clock_t start, end;
     vector<float> infs;
 
     while (1) {
-        frameCnt++;
+        Mat frame, resFrame;
+        videoCW >> frame;
 
-        for (int vchID = 0; vchID < cfg.numChannels; vchID++) {
-            Mat frame, srFrame;
-            (videoDir[vchID]) >> frame;
-
-            // if the frame is empty, break immediately
-            if (frame.empty()) {
-                cout << "End of Frames\n";
-                endOfFrames = true;
-                break;
-            }
-
-            double scaleFactor = cfg.scaleFactors[vchID];
-
-            start = clock();
-
-            // reconstruct srFrames using frames
-            if (!runModel(frame, srFrame, scaleFactor))
-                break;
-
-            end = clock();
-
-            (videoDir[vchID]) << srFrame;  // write a frame
-
-            float inf = end - start;
-
-            if (frameCnt > 10 && frameCnt < 500)  // skip the start frames and limit the number of elements
-                infs.push_back(inf);
-
-            cout << "[" << vchID << "]Frame " << frameCnt << ">\tInference Time: " << inf << "ms\n";
-
-            if (cfg.filterEnable) {
-                Mat filterFrame;
-                resize(frame, filterFrame, Size(0, 0), scaleFactor, scaleFactor, INTER_LINEAR);
-                (videoDir[vchID]).writeFilterOutput(filterFrame);  // write a filter frame
-            }
+        // if the frame is empty, break immediately
+        if (frame.empty()) {
+            cout << "End of Frames\n";
+            break;
         }
 
-        if ((frameLimit != -1 && frameCnt >= frameLimit) || endOfFrames)
+        start = clock();
+
+        if (cfg.scaleFactorX10 != 10) {
+            if (!runModel(frame, resFrame, cfg.scaleFactorX10))  // SR
+                break;
+        } else {
+            if (!runModelNV(frame, resFrame))  // NV
+                break;
+        }
+
+        end = clock();
+
+        videoCW << resFrame;  // write a frame
+
+        float inf = end - start;
+
+        if (frameCnt > 10 && frameCnt < 500)  // skip the start frames and limit the number of elements
+            infs.push_back(inf);
+
+        cout << "Frame " << frameCnt << ">\tInference Time: " << inf << "ms\n";
+
+        if (cfg.filterEnable) {
+            Mat filterFrame;
+            resize(frame, filterFrame, Size(0, 0), scaleFactor, scaleFactor, INTER_LINEAR);
+            videoCW.writeFilterOutput(filterFrame);  // write a filter frame
+        }
+
+        if (frameLimit != -1 && frameCnt >= frameLimit)
             break;
+
+        frameCnt++;
     }
 
     destroyModel();  // destroy sr models
@@ -105,18 +106,16 @@ int main(int argc, char *argv[]) {
     }
 
     cout << "\nOutput file(s):\n";
-    for (auto &outFile : cfg.outputFiles)
-        cout << "\t" << outFile << endl;
-
-    for (auto &filterFile : cfg.filterFiles)
-        cout << "\t" << filterFile << endl;
+    cout << "\t" << cfg.outputFile << endl;
+    if (cfg.filterEnable)
+        cout << "\t" << cfg.filterFile << endl;
 
     cout << "\nTerminate program!\n";
 
     return 0;
 }
 
-bool parseConfigAPI(Config &cfg, VideoDir &videoDir, int argc, char *argv[]) {
+bool parseConfigAPI(Config &cfg, VideoCW &videoCW, int argc, char *argv[]) {
     string jsonCfgFile = CFG_FILEPATH;
     ifstream cfgFile(jsonCfgFile);
     json js;
@@ -124,66 +123,55 @@ bool parseConfigAPI(Config &cfg, VideoDir &videoDir, int argc, char *argv[]) {
 
     if (argc != 3) {
         // apikey
-        cfg.frameLimit = js["global"]["frame_limit"];
-        cfg.filterEnable = js["global"]["filter_enable"];
-
-        cfg.inputFiles = js["global"]["input_files"].get<vector<string>>();
-        cfg.outputFiles = js["global"]["output_files"].get<vector<string>>();
-        cfg.filterFiles.clear();
+        cfg.frameLimit = js["frame_limit"];
+        cfg.filterEnable = js["filter_enable"];
+        cfg.inputFile = js["input_file"];
+        cfg.outputFile = js["output_file"];
 
         // sr scaling factors
-        cfg.scaleFactors = js["sr"]["scale_factors"].get<vector<double>>();
+        cfg.scaleFactorX10 = js["scale_factor_x10"];
     } else {
         // apikey
-        cfg.frameLimit = 500000;
+        cfg.frameLimit = 100;
         cfg.filterEnable = false;
+        cfg.inputFile = string("C:\\aipro\\videos\\") + string(argv[1]);
 
-        string inputFile = string("C:\\aipro\\videos\\") + string(argv[1]);
-
-        cfg.inputFiles.push_back(inputFile);
-
-        string outputFile = inputFile;
+        string outputFile = cfg.inputFile;
         const size_t period_idx = outputFile.rfind('.');
         if (string::npos != period_idx) {
             outputFile.erase(period_idx);
         }
 
         outputFile = outputFile + "-sr" + ".mp4";
-        cfg.outputFiles.push_back(outputFile);
+        cfg.outputFile = outputFile;
 
         // sr scaling factors
-        cfg.scaleFactors.push_back((double)atof(argv[2]));
-    }
-
-    if (cfg.inputFiles.size() != cfg.outputFiles.size()) {
-        cout << "input_files and output_files should be the same size!!";
-        return false;
+        cfg.scaleFactorX10 = (int)atof(argv[2]);
     }
 
     if (cfg.filterEnable) {
-        for (auto &inputFile : cfg.inputFiles) {
-            string filterFile = inputFile;
-            const size_t period_idx = filterFile.rfind('.');
-            if (string::npos != period_idx) {
-                filterFile.erase(period_idx);
-            }
-
-            string filterFileAppend = js["global"]["filter_file_append"];
-            filterFile = filterFile + filterFileAppend + ".mp4";
-            cfg.filterFiles.push_back(filterFile);
+        string filterFile = cfg.inputFile;
+        const size_t period_idx = filterFile.rfind('.');
+        if (string::npos != period_idx) {
+            filterFile.erase(period_idx);
         }
+
+        string filterFileAppend("-filter");
+        filterFile = filterFile + filterFileAppend + ".mp4";
+        cfg.filterFile = filterFile;
     }
 
     cfg.srModelFileX1_5 = SR_X1_5_FILEPATH;
     cfg.srModelFileX2 = SR_X2_FILEPATH;
+    cfg.nvModelFileHD = NV_HD_FILEPATH;
+    cfg.nvModelFileFHD = NV_FHD_FILEPATH;
 
     // read the list of filepaths
-    videoDir.init(cfg.inputFiles, cfg.outputFiles, cfg.filterFiles, cfg.scaleFactors, cfg.filterEnable);
+    videoCW.init(cfg.inputFile, cfg.outputFile, cfg.filterFile, cfg.scaleFactorX10, cfg.filterEnable);
 
-    cfg.numChannels = videoDir.size();
-    cfg.frameWidths = videoDir.getFrameWidths();
-    cfg.frameHeights = videoDir.getFrameHeights();
-    cfg.fpss = videoDir.getFpss();
+    cfg.frameWidth = videoCW.getFrameWidth();
+    cfg.frameHeight = videoCW.getFrameHeight();
+    cfg.fps = videoCW.getFps();
 
     return true;
 }

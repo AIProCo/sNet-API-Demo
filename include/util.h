@@ -15,187 +15,101 @@ using namespace std;
 using namespace cv;
 
 /// Data structure to represent Video Caputer, Writer
-struct VideoCW {
+class VideoCW {
+   public:
     VideoCapture *videoCapturer;
     VideoWriter *videoWriter;
     VideoWriter *videoWriterFilter;
 
     string inPath;
     string outPath;
-    int totalFrames;
     int frameWidth;
     int frameHeight;
     float fps;
-    bool filterFlag;
+    bool filterEnable;
 
-    VideoCapture &cap() const {
-        return *(videoCapturer);
+    VideoCW() {
     }
-    VideoWriter &writer() const {
-        return *(videoWriter);
+
+    ~VideoCW() {
+        videoCapturer->release();
+        delete videoCapturer;
+
+        videoWriter->release();
+        delete videoWriter;
+
+        if (filterEnable) {
+            videoWriterFilter->release();
+            delete videoWriterFilter;
+        }
     }
     void writeFilterOutput(Mat &frame) const {
         videoWriterFilter->write(frame);
     }
 
-    friend VideoCW &operator>>(VideoCW &videoCW, Mat &frame) {
-        videoCW.cap() >> frame;
-        return videoCW;
+    void operator>>(Mat &frame) {
+        *(videoCapturer) >> frame;
     }
 
-    friend VideoCW &operator<<(VideoCW &videoCW, Mat &frame) {
-        videoCW.writer().write(frame);
-        return videoCW;
-    }
-};
-
-/// this is a helper class to read video files in a certain directory
-class VideoDir {
-   private:
-    vector<string> inPaths;
-    vector<string> outPaths;
-    vector<VideoCW *> videoCWs;
-    vector<int> frameWidths;
-    vector<int> frameHeights;
-    vector<float> fpss;
-    bool filterEnable;
-
-   public:
-    VideoCW &operator[](int idx) const {
-        return *videoCWs[idx];
+    void operator<<(Mat &frame) {
+        videoWriter->write(frame);
     }
 
-    VideoDir() {
-    }
-
-    VideoDir(const vector<string> &inFilepaths, const vector<string> &outFilepaths,
-             const vector<string> &bilinearFilepaths = {}) {
-        init(inFilepaths, outFilepaths, bilinearFilepaths);
-    }
-
-    void init(const vector<string> &inFilepaths, const vector<string> &outFilepaths,
-              const vector<string> &bilinearFilepaths = {}, const vector<double> &scaleFactors = {},
-              bool _filterEnable = false) {
+    void init(const string &inFilepath, const string &outFilepath, const string &bilinearFilepath = "",
+              int scaleFactorX10 = 0, bool _filterEnable = false) {
         filterEnable = _filterEnable;
-
-        setVideoCWFiles(inFilepaths, outFilepaths, bilinearFilepaths, scaleFactors);
-        setFrameWidthsHeights(videoCWs);
+        setVideoFile(inFilepath, outFilepath, bilinearFilepath, scaleFactorX10);
     }
 
-    virtual ~VideoDir() {
-        freeVideoCWFiles(this->videoCWs);
+    int getFrameWidth() {
+        return frameWidth;
     }
 
-    int size() {
-        return videoCWs.size();
+    int getFrameHeight() {
+        return frameHeight;
     }
 
-    vector<int> getFrameWidths() {
-        return frameWidths;
+    float getFps() {
+        return fps;
     }
 
-    vector<int> getFrameHeights() {
-        return frameHeights;
-    }
+   private:
+    void setVideoFile(const string &inFilepath, const string &outFilepath, const string &filterFilepath,
+                      const int &scaleFactorX10) {
+        videoCapturer = new VideoCapture(inFilepath);
+        double scaleFactor = scaleFactorX10 / 10.0;
 
-    vector<float> getFpss() {
-        return fpss;
-    }
+        if (!videoCapturer->isOpened()) {
+            cout << "Error opening video stream" << inFilepath << endl;
+            exit(0);
+        }
 
-    void setVideoCWFiles(const vector<string> &inFilepaths, const vector<string> &outFilepaths,
-                         const vector<string> &filterFilepaths, const vector<double> &scaleFactors) {
-        for (size_t i = 0; i < inFilepaths.size(); i++) {
-            string inFilepath = inFilepaths[i];
-            string outFilepath = outFilepaths[i];
-            string filterFilepath = "";
-            double scaleFactor = scaleFactors[i];
+        frameWidth = videoCapturer->get(CAP_PROP_FRAME_WIDTH);
+        frameHeight = videoCapturer->get(CAP_PROP_FRAME_HEIGHT);
+        fps = videoCapturer->get(CAP_PROP_FPS);
 
-            if (filterFilepaths.size() > i)
-                filterFilepath = filterFilepaths[i];
+        Size size(scaleFactor * frameWidth, scaleFactor * frameHeight);
 
-            VideoCW *videoCW;
-            VideoCapture *capturer = new VideoCapture(inFilepath);
+        if (size.width != 0 && size.height != 0) {
+            videoWriter = new VideoWriter(outFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'), fps, size);
 
-            if (!capturer->isOpened()) {
-                cout << "Error opening video stream" << inFilepath << endl;
-                break;
+            if (!videoWriter->isOpened()) {
+                cout << "videoWriter Error in setVideoFile!\n";
+                exit(0);
             }
 
-            videoCW = new VideoCW();
+            if (filterEnable) {
+                videoWriterFilter = new VideoWriter(filterFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'), fps, size);
 
-            if (videoCW == NULL) {
-                cout << "videoCW memory allocation error!!" << endl;
-                break;
-            }
-
-            videoCW->videoCapturer = capturer;
-            videoCW->totalFrames = capturer->get(CAP_PROP_FRAME_COUNT);
-            videoCW->frameWidth = capturer->get(CAP_PROP_FRAME_WIDTH);
-            videoCW->frameHeight = capturer->get(CAP_PROP_FRAME_HEIGHT);
-            videoCW->fps = capturer->get(CAP_PROP_FPS);
-            videoCW->filterFlag = false;
-
-            Size size(scaleFactor * videoCW->frameWidth, scaleFactor * videoCW->frameHeight);
-
-            if (size.width != 0 && size.height != 0) {
-                videoCW->videoWriter =
-                    new VideoWriter(outFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'), videoCW->fps, size);
-
-                if (filterEnable && filterFilepath != "") {
-                    videoCW->filterFlag = true;
-
-                    videoCW->videoWriterFilter =
-                        new VideoWriter(filterFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'), videoCW->fps, size);
-                }
-            } else {
-                videoCW->videoWriter = new VideoWriter(outFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'),
-                                                       videoCW->fps, Size(videoCW->frameWidth, videoCW->frameHeight));
-
-                if (filterEnable && filterFilepath != "") {
-                    videoCW->filterFlag = true;
-
-                    videoCW->videoWriterFilter =
-                        new VideoWriter(filterFilepath, VideoWriter::fourcc('m', 'p', '4', 'v'), videoCW->fps,
-                                        Size(videoCW->frameWidth, videoCW->frameHeight));
+                if (!videoWriterFilter->isOpened()) {
+                    cout << "videoWriterFilter Error in setVideoFile!\n";
+                    exit(0);
                 }
             }
-
-            videoCWs.push_back(videoCW);
-        }
-    }
-
-    void freeVideoCWFiles(vector<VideoCW *> &videoCWs) {
-        for (int i = 0; i < videoCWs.size(); i++) {
-            videoCWs[i]->videoCapturer->release();
-            delete videoCWs[i]->videoCapturer;
-
-            videoCWs[i]->videoWriter->release();
-            delete videoCWs[i]->videoWriter;
-
-            if (filterEnable && videoCWs[i]->filterFlag) {
-                videoCWs[i]->videoWriterFilter->release();
-                delete videoCWs[i]->videoWriterFilter;
-            }
-
-            delete videoCWs[i];
-        }
-    }
-
-    void setFrameWidthsHeights(vector<VideoCW *> &videoCWs) {
-        for (int i = 0; i < videoCWs.size(); i++) {
-            frameWidths.push_back(videoCWs[i]->frameWidth);
-            frameHeights.push_back(videoCWs[i]->frameHeight);
-            fpss.push_back(videoCWs[i]->fps);
+        } else {
+            cout << "Size Error in setVideoFile!\n";
+            exit(0);
         }
     }
 };
-
-/// @brief  A utility function to print out the elements of vector
-template <typename T>
-std::ostream &operator<<(std::ostream &os, std::vector<T> vec) {
-    os << "{ ";
-    std::copy(vec.begin(), vec.end(), std::ostream_iterator<T>(os, " "));
-    os << "}";
-    return os;
-}
 #endif  // UTIL_H
