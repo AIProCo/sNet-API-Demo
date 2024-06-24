@@ -5,7 +5,7 @@
      - Real-time Super Resolution
      - Night Vision
 
-# Licensing and Restrictions
+- # Licensing and Restrictions
 
 - Commercial use must be approved by AIPro Inc. 
 - The maximum number of inferences for all channels is set to 10000.
