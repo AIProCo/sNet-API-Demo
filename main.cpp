@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
 
         cout << "Frame " << frameCnt << ">\tInference Time: " << inf << "ms\n";
 
-        if (cfg.filterEnable) {
+        if (cfg.filterEnable && cfg.scaleFactorX10 != 10) {
             Mat filterFrame;
             resize(frame, filterFrame, Size(0, 0), scaleFactor, scaleFactor, INTER_CUBIC);
             videoCW.writeFilterOutput(filterFrame);  // write a filter frame
