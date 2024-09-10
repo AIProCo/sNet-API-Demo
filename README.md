@@ -1,8 +1,8 @@
 ### 🎉A new real-time SR model(aipro_sr_2_0) has been released!!🎉
 # sNet-API-Demo (Demo program for sNet-API)
 
-- This is a repository for demo of sNet-API developped by AIPro Inc.
-  + sNet: AIPro Deep Learning Solution supporting the following functionalities:
+- This is a repository for demo of sNet-API developed by AIPro Inc.
+  + sNet: AIPro Deep Learning Solution supporting the following features:
      - Real-time Super Resolution
      - Night Vision
 
@@ -10,7 +10,7 @@
 
 - Commercial use must be approved by AIPro Inc. 
 - The maximum number of inferences for all channels is set to 10000.
-- (Important!!) there are several hidden features to prevent illegal use in this repository.
+- (Important!!) There are several hidden features to prevent illegal use in this repository.
   
 ------------------
 
@@ -21,12 +21,12 @@
 
 ### **Installation and Solution Guide**
 
-- You can refer to one of the following technical documents in the repository for installation and guide:
+- You can refer to the following technical document in the repository for installation and solution guide:
   + Korean: AIPro_sNet_solution_guide_v1.4.x(Korean).pdf
 
 ### **Download and extract files**
 
-- Download and upzip the following zip file. Then, copy and paste bin, inputs, and videos directories to the solution directory (the directory including the `.sln` file):
+- Download and unzip one of the following zip files depending on your GPU. Then, copy and paste bin, inputs, and videos directories into the solution directory (the directory including the `.sln` file):
   + Cuda compute capability of your GPU should be 8.6(RTX-30xx) or 8.9(RTX-40xx): 
     - Link for RTX-30xx: https://drive.google.com/file/d/1ngPxdCMFo73Fl49txwTUWkrB_4pN8NUv/view?usp=sharing
     - Link for RTX-40xx: https://drive.google.com/file/d/1zo1yCN8hXWSh2nWMNS_S_YVTk_Nc_Ymk/view?usp=sharing
