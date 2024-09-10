@@ -15,8 +15,8 @@
 #include "util.h"
 
 #define CFG_FILEPATH "inputs/config.json"
-#define SR_X2_FILEPATH "inputs/aipro_sr_x2_1_7.net"
-#define SR_X1_5_FILEPATH "inputs/aipro_sr_x1_5_1_7.net"
+#define SR_X20_FILEPATH "inputs/aipro_sr_x20_2_0.net"
+#define SR_X15_FILEPATH "inputs/aipro_sr_x15_2_0.net"
 #define NV_FHD_FILEPATH "inputs/aipro_nv_1088_1920_1_7.net"
 #define NV_HD_FILEPATH "inputs/aipro_nv_736_1280_1_7.net"
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    if (!initModel(cfg.srModelFileX2, cfg.srModelFileX1_5, cfg.nvModelFileFHD, cfg.nvModelFileHD)) {
+    if (!initModel(cfg.srModelFileX20, cfg.srModelFileX15, cfg.nvModelFileFHD, cfg.nvModelFileHD)) {
         cout << "Initialization of the solution failed!\n";
         return -1;
     }
@@ -71,6 +71,8 @@ int main(int argc, char *argv[]) {
             if (!runModel(frame, resFrame, cfg.scaleFactorX10))  // SR
                 break;
         } else {
+            // fastNlMeansDenoisingColored(frame, frame);
+
             if (!runModelNV(frame, resFrame))  // NV
                 break;
         }
@@ -86,9 +88,9 @@ int main(int argc, char *argv[]) {
 
         cout << "Frame " << frameCnt << ">\tInference Time: " << inf << "ms\n";
 
-        if (cfg.filterEnable && cfg.scaleFactorX10 != 10) {
+        if (cfg.filterEnable) {
             Mat filterFrame;
-            resize(frame, filterFrame, Size(0, 0), scaleFactor, scaleFactor, INTER_LINEAR);
+            resize(frame, filterFrame, Size(0, 0), scaleFactor, scaleFactor, INTER_CUBIC);
             videoCW.writeFilterOutput(filterFrame);  // write a filter frame
         }
 
@@ -161,8 +163,8 @@ bool parseConfigAPI(Config &cfg, VideoCW &videoCW, int argc, char *argv[]) {
         cfg.filterFile = filterFile;
     }
 
-    cfg.srModelFileX1_5 = SR_X1_5_FILEPATH;
-    cfg.srModelFileX2 = SR_X2_FILEPATH;
+    cfg.srModelFileX15 = SR_X15_FILEPATH;
+    cfg.srModelFileX20 = SR_X20_FILEPATH;
     cfg.nvModelFileHD = NV_HD_FILEPATH;
     cfg.nvModelFileFHD = NV_FHD_FILEPATH;
 

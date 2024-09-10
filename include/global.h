@@ -20,9 +20,9 @@ struct Config {
     std::string filterFile;  /// list of the filter output files
 
     // sr config
-    std::string srModelFileX1_5;  /// x1.5 SR model
-    std::string srModelFileX2;    /// x2 SR model
-    bool filterEnable;            /// Enable filter
+    std::string srModelFileX15;  /// x1.5 SR model
+    std::string srModelFileX20;  /// x2 SR model
+    bool filterEnable;           /// Enable filter
 
     // nv config
     std::string nvModelFileHD;
