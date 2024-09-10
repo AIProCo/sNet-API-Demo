@@ -1,5 +1,4 @@
-# -- A new vesion of real-time SR model(aipro_sr_2_0) has been released> --
-
+### 🎉A new real-time SR model(aipro_sr_2_0) has been released!!🎉
 # sNet-API-Demo (Demo program for sNet-API)
 
 - This is a repository for demo of sNet-API developped by AIPro Inc.
