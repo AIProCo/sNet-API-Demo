@@ -1,3 +1,5 @@
+# -- A new vesion of real-time SR model(aipro_sr_2_0) has been released> --
+
 # sNet-API-Demo (Demo program for sNet-API)
 
 - This is a repository for demo of sNet-API developped by AIPro Inc.
@@ -26,13 +28,9 @@
 ### **Download and extract files**
 
 - Download and upzip the following zip file. Then, copy and paste bin, inputs, and videos directories to the solution directory (the directory including the `.sln` file):
-  + Cuda compute capability of your GPU should be 8.6 or later(ex: RTX 30xx): 
-    - Link: hidden
-
-### **Download and extract files**
-- Download and upzip the followings zip files. Then, copy and paste bin, inputs, and videos directories to the solution directory (the directory including the `.sln` file):
-  + Cuda compute capability of your GPU should be 8.6 (ex: RTX 30xx): 
-    - https://drive.google.com/file/d/1aObHOF5COqTl9Foez_v2fh-vbwmVw4E9/view?usp=sharing
+  + Cuda compute capability of your GPU should be 8.6(RTX-30xx) or 8.9(RTX-40xx): 
+    - Link for RTX-30xx: https://drive.google.com/file/d/1ngPxdCMFo73Fl49txwTUWkrB_4pN8NUv/view?usp=sharing
+    - Link for RTX-40xx: https://drive.google.com/file/d/1zo1yCN8hXWSh2nWMNS_S_YVTk_Nc_Ymk/view?usp=sharing
 
 ### **Run the project**
 
