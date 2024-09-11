@@ -37,7 +37,7 @@
   + `sNet-API-Demo.sln` in the solution directory
 
 ### **Image quality demo**
-![2AIPro_회사소개서V6(홈페이지전용)230523_12](https://github.com/CheaeunLee/Test/assets/127072960/ea214d4b-323d-4290-8c8a-c1d3dba9509d)
+![AIPro 회사소개서_240911_v1 0_ND](https://github.com/user-attachments/assets/0994c2df-efdf-4ac7-bf5f-64d805f7f110)
 
 ### **Video quality demo**
 - Sample #1(click)
