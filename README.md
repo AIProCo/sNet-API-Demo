@@ -38,7 +38,6 @@
 
 ### **Image quality demo**
 ![AIPro 회사소개서_240911_v1 0_ND](https://github.com/user-attachments/assets/0994c2df-efdf-4ac7-bf5f-64d805f7f110)
-
 ### **Video quality demo**
 - Sample #1(click)
 [![SR1](https://img.youtube.com/vi/nNWG7DGQrYs/maxresdefault.jpg)](https://youtu.be/nNWG7DGQrYs)
