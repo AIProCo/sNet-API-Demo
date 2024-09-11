@@ -3,7 +3,7 @@
 
 - This is a repository for demo of sNet-API developed by AIPro Inc.
   + sNet: AIPro Deep Learning Solution supporting the following features:
-     - Real-time Super Resolution
+     - Real-Time Super Resolution
      - Night Vision
 
 # Licensing and Restrictions
@@ -36,9 +36,9 @@
 - Open the following sln:
   + `sNet-API-Demo.sln` in the solution directory
 
-### **Image quality demo**
+### **Performance of AIPro Real-Time SR**
 ![AIPro 회사소개서_240911_v1 0_ND](https://github.com/user-attachments/assets/0994c2df-efdf-4ac7-bf5f-64d805f7f110)
-### **Video quality demo**
+### **Video Quality Demo**
 - Sample #1(click)
 [![SR1](https://img.youtube.com/vi/nNWG7DGQrYs/maxresdefault.jpg)](https://youtu.be/nNWG7DGQrYs)
 - Sample #2(click)
