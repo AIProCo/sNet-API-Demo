@@ -37,13 +37,31 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    if (!parseConfigAPI(cfg, videoCW, argc, argv)) {
-        cout << "Parsing Error!\n";
+    try {
+        if (!parseConfigAPI(cfg, videoCW, argc, argv)) {
+            cout << "Parsing Error!\n";
+            return -1;
+        }
+        else
+            cout << "Parsing completed successfully.\n";
+
+    }
+    catch (const std::exception&) {
+        cout << "Parsing Exception Error!\n";
         return -1;
     }
 
-    if (!initModel(cfg.srModelFileX20, cfg.srModelFileX15, cfg.nvModelFileFHD, cfg.nvModelFileHD)) {
-        cout << "Initialization of the solution failed!\n";
+    try {
+        if (!initModel(cfg.srModelFileX20, cfg.srModelFileX15, cfg.nvModelFileFHD, cfg.nvModelFileHD)) {
+            cout << "Initialization of the solution failed!\n";
+            return -1;
+        }
+        else
+            cout << "Initialization completed successfully.\n";
+
+    }
+    catch (const std::exception&) {
+        cout << "Initialization Exception Error!\n";
         return -1;
     }
 
